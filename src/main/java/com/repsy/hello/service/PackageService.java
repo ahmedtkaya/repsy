@@ -1,13 +1,13 @@
 package com.repsy.hello.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.repsy.hello.dto.PackageMetaDto;
 import com.repsy.hello.entity.Dependency;
 import com.repsy.hello.entity.Package;
 import com.repsy.hello.repository.PackageRepository;
 import com.repsy.hello.service.storage.StorageService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+// import com.repsy.hello.service.storage.ObjectStorageService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,10 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
+// import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class PackageService {
 
     private final StorageService storageService;
@@ -27,6 +26,12 @@ public class PackageService {
 
     @Value("${storage.strategy}")
     private String storageType;
+
+    public PackageService(@Qualifier("storageService") StorageService storageService,
+            PackageRepository packageRepository) {
+        this.storageService = storageService;
+        this.packageRepository = packageRepository;
+    }
 
     public void handleUpload(String packageName, String version,
             MultipartFile repFile, MultipartFile metaFile) throws Exception {
@@ -41,11 +46,9 @@ public class PackageService {
             throw new IllegalArgumentException("Metadata does not match path.");
         }
 
-        // Store files
         storageService.saveFile(packageName, version, "package.rep", repFile.getBytes());
         storageService.saveFile(packageName, version, "meta.json", metaFile.getBytes());
 
-        // Save to DB
         Package pkg = Package.builder()
                 .name(meta.getName())
                 .version(meta.getVersion())
@@ -64,7 +67,7 @@ public class PackageService {
         try {
             return storageService.readFile(packageName, version, fileName);
         } catch (IOException e) {
-            throw new FileNotFoundException("file not found:" + fileName);
+            throw new FileNotFoundException("File not found: " + fileName);
         }
     }
 }

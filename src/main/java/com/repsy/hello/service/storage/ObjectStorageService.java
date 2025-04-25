@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -33,14 +34,14 @@ public class ObjectStorageService implements StorageService {
 
     @PostConstruct
     public void init() {
+
         s3 = S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)))
-                .region(Region.US_EAST_1) // MinIO için önemli değil ama boş bırakılmaz
+                .region(Region.US_EAST_1)
                 .build();
 
-        // Bucket var mı, yoksa oluştur
         try {
             s3.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
         } catch (NoSuchBucketException e) {
@@ -67,4 +68,21 @@ public class ObjectStorageService implements StorageService {
                 .build())
                 .readAllBytes();
     }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
+    }
+
 }

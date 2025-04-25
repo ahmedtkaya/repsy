@@ -10,5 +10,6 @@ WORKDIR /app
 # Jar dosyasını konteynıra kopyala
 COPY ${JAR_FILE} app.jar
 
+
 # Uygulama başlat
 ENTRYPOINT ["java","-jar","app.jar"]
